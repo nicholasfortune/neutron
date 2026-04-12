@@ -1,5 +1,5 @@
 # Binary Architecture
-This file format is made of a header with crucial parsing information, and blocks with the weights and biases in an alternating fasion.
+The `.neu` file format is made of a header with crucial parsing information, and blocks with the weights and biases placed in an alternating fasion.
 
 | **Block Number** 	| **Block Purpose**   	| **Data Type**                      	| **Description / Notes**                                                 	|
 |------------------	|---------------------	|------------------------------------	|-------------------------------------------------------------------------	|
