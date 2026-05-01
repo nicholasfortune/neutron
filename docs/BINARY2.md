@@ -1,0 +1,12 @@
+# Header
+
+| **Index** 	| **Offset**         	| **Field**         	| **Type**   	| **Description**                                                                      	|
+|-----------	|--------------------	|-------------------	|------------	|--------------------------------------------------------------------------------------	|
+| 0         	| 0 bytes or `0x00`  	| `id`              	| `uint32_t` 	| A uni                                                                                	|
+| 1         	| 4 bytes or `0x04`  	| `version`         	| `uint32_t` 	| Fixed-point version number stored in a 32-bit integer as hundredths. Ex: 105 = v1.05 	|
+| 2         	| 8 bytes or `0x08`  	| `header_checksum` 	| `uint32_t` 	| CRC32 checksum of the 32-byte header. Treated as zero during checksum computation.   	|
+| 3         	| 12 bytes or `0x0C` 	| `map_count`       	| `uint32_t` 	| The count of entries in the map                                                      	|
+| 4         	| 16 bytes or `0x10` 	| `map_offset`      	| `uint64_t` 	| The offset of the first entry in the map                                             	|
+| 5         	| 24 bytes or `0x18` 	| `file_size`       	| `uint64_t` 	| The total size of the file used for validation                                       	|
+
+# Map Entry

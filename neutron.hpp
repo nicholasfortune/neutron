@@ -15,7 +15,7 @@ namespace neutron
 {
 	namespace binary
 	{
-		struct file_metadata
+		struct header
 		{
 			uint32_t version;
 			uint32_t blocks;
@@ -24,11 +24,14 @@ namespace neutron
 			std::vector<uint32_t> config_data;
 		};
 
-		inline void insert_bytes(char *location, std::fstream &file, std::streampos position, size_t old_data_size, const char *data, size_t data_size)
+		// Versatile insert/overwrite function for
+		inline void insert_bytes(char *location, std::streampos position, size_t old_data_size, const char *data, size_t data_size)
 		{
+			// Open file
+			std::fstream file(location, std::ios::in | std::ios::out | std::ios::binary);
 			if (!file.is_open())
 			{
-				std::cerr << "insert_bytes: file not open\n";
+				std::cerr << "read_block: failed to open \"" << location << "\".\n";
 				return;
 			}
 
@@ -106,12 +109,21 @@ namespace neutron
 			file.clear(); // Reset any flags
 			return;
 		}
-		inline file_metadata read_metadata(std::fstream &file)
+		// Reads all metadata from a requested `.neu` file and provides it in the `neuron::binary::header` struct
+		inline header read_metadata(char *location)
 		{
+			// Open file
+			std::fstream file(location, std::ios::in | std::ios::out | std::ios::binary);
+			if (!file.is_open())
+			{
+				std::cerr << "read_block: failed to open \"" << location << "\".\n";
+				return neutron::binary::header{};
+			}
+
 			if (!file.is_open())
 			{
 				std::cerr << "read_metadata: failed to open provided file.\n";
-				return {};
+				return neutron::binary::header{};
 			}
 
 			file.seekg(0, std::ios::beg);
@@ -122,7 +134,7 @@ namespace neutron
 			if (!file)
 			{
 				std::cerr << "read_metadata: error getting version metadata.\n";
-				return neutron::binary::file_metadata{};
+				return neutron::binary::header{};
 			}
 
 			// Blocks
@@ -131,7 +143,7 @@ namespace neutron
 			if (!file)
 			{
 				std::cerr << "read_metadata: error getting blocks metadata.\n";
-				return neutron::binary::file_metadata{};
+				return neutron::binary::header{};
 			}
 
 			// Block sizes
@@ -140,7 +152,7 @@ namespace neutron
 			if (!file)
 			{
 				std::cerr << "read_metadata: error getting block sizes metadata.\n";
-				return neutron::binary::file_metadata{};
+				return neutron::binary::header{};
 			}
 
 			// Config size
@@ -149,7 +161,7 @@ namespace neutron
 			if (!file)
 			{
 				std::cerr << "read_metadata: error getting config_size metadata.\n";
-				return neutron::binary::file_metadata{};
+				return neutron::binary::header{};
 			}
 
 			// Config data
@@ -158,20 +170,23 @@ namespace neutron
 			if (!file)
 			{
 				std::cerr << "read_metadata: error getting config_data metadata.\n";
-				return neutron::binary::file_metadata{};
+				return neutron::binary::header{};
 			}
 
-			return neutron::binary::file_metadata{version, blocks, block_sizes, config_size, config_data};
+			return neutron::binary::header{version, blocks, block_sizes, config_size, config_data};
 		}
-		inline void overwrite_config(char *location, std::fstream &file, std::vector<uint32_t> config_data)
+		// Overwrites the full config of a `.neu` file with a provided array
+		inline void overwrite_config(char *location, std::vector<uint32_t> config_data)
 		{
+			// Open file
+			std::fstream file(location, std::ios::in | std::ios::out | std::ios::binary);
 			if (!file.is_open())
 			{
-				std::cerr << "overwrite_config: failed to open provided file.\n";
+				std::cerr << "read_block: failed to open \"" << location << "\".\n";
 				return;
 			}
 
-			neutron::binary::file_metadata metadata = read_metadata(file);
+			neutron::binary::header metadata = read_metadata(location);
 			size_t sum = sizeof(uint32_t) * (2 + metadata.blocks); // Size of metadata minus config_size and config_data in bytes
 
 			// Change config_size
@@ -180,25 +195,26 @@ namespace neutron
 			file.write(reinterpret_cast<const char *>(&value), sizeof(uint32_t));
 
 			// Change config_data
-			insert_bytes(location, file, sum + sizeof(uint32_t), sizeof(uint32_t) * metadata.config_size, reinterpret_cast<const char *>(config_data.data()), sizeof(uint32_t) * config_data.size());
+			insert_bytes(location, sum + sizeof(uint32_t), sizeof(uint32_t) * metadata.config_size, reinterpret_cast<const char *>(config_data.data()), sizeof(uint32_t) * config_data.size());
 
 			file.seekg(0, std::ios::beg);
 		}
+		// Reads the floats at a requested block from the provided `.neu` file
 		inline std::vector<float> read_block(char *location, uint32_t block)
 		{
 			// Open file
-			std::fstream file(location, std::ios::in | std::ios::binary);
+			std::fstream file(location, std::ios::in | std::ios::out | std::ios::binary);
 			if (!file.is_open())
 			{
 				std::cerr << "read_block: failed to open \"" << location << "\".\n";
 				return {};
 			}
 
-			neutron::binary::file_metadata file_metadata = read_metadata(file);
-			uint32_t version = file_metadata.version;
-			uint32_t blocks = file_metadata.blocks;
-			std::vector<uint32_t> block_sizes = file_metadata.block_sizes;
-			uint32_t config_size = file_metadata.config_size;
+			neutron::binary::header header = read_metadata(location);
+			uint32_t version = header.version;
+			uint32_t blocks = header.blocks;
+			std::vector<uint32_t> block_sizes = header.block_sizes;
+			uint32_t config_size = header.config_size;
 
 			// Find the block the user wants
 			if (block >= blocks)
@@ -240,6 +256,7 @@ namespace neutron
 
 			return wanted_block;
 		}
+		// Writes an array of floats at the requested block to the provided `.neu` file
 		inline void write_block(char *location, uint32_t block, std::vector<float> values)
 		{
 			// Open file
@@ -250,14 +267,14 @@ namespace neutron
 				return;
 			}
 
-			neutron::binary::file_metadata file_metadata = read_metadata(file);
-			uint32_t version = file_metadata.version;
-			uint32_t blocks = file_metadata.blocks;
-			std::vector<uint32_t> block_sizes = file_metadata.block_sizes;
-			uint32_t config_size = file_metadata.config_size;
+			neutron::binary::header header = read_metadata(location);
+			uint32_t version = header.version;
+			uint32_t blocks = header.blocks;
+			std::vector<uint32_t> block_sizes = header.block_sizes;
+			uint32_t config_size = header.config_size;
 
 			// Find the block the user wants
-			size_t sum = sizeof(uint32_t) * (3 + blocks + config_size); // Size of metadata
+			size_t sum = sizeof(uint32_t) * (4 + blocks + config_size); // Size of metadata
 			for (size_t i = 0; i < block && i < blocks; i++)
 				sum += block_sizes[i];
 
@@ -266,13 +283,12 @@ namespace neutron
 			// Write a new block
 			if (block == blocks)
 			{
-
 				// Write new block at end
 				file.seekp(sum, std::ios::beg);
 				file.write(reinterpret_cast<const char *>(values.data()), size);
 
 				// Append new block sizes entry
-				insert_bytes(location, file, (2 + block) * sizeof(uint32_t), 0, reinterpret_cast<const char *>(&size), sizeof(uint32_t));
+				insert_bytes(location, (2 + block) * sizeof(uint32_t), 0, reinterpret_cast<const char *>(&size), sizeof(uint32_t));
 
 				// Increment blocks"
 				blocks++;
@@ -283,11 +299,10 @@ namespace neutron
 			// Overwrite existing block
 			else if (block < blocks)
 			{
-
-				insert_bytes(location, file, sum, block_sizes[block], reinterpret_cast<const char *>(values.data()), size);
+				insert_bytes(location, sum, block_sizes[block], reinterpret_cast<const char *>(values.data()), size);
 
 				// Overwrite "block sizes" entry
-				file.seekp(8 + block * sizeof(uint32_t), std::ios::beg);
+				file.seekp(2 * sizeof(uint32_t) + block * sizeof(uint32_t), std::ios::beg);
 				file.write(reinterpret_cast<const char *>(&size), sizeof(uint32_t));
 			}
 
@@ -300,6 +315,7 @@ namespace neutron
 			file.flush();
 			file.close();
 		}
+		// Creates an empty `.neu` header at the given location.
 		inline void new_bin(char *location)
 		{
 			std::ofstream create(location, std::ios::binary | std::ios::trunc);
@@ -372,10 +388,7 @@ namespace neutron
 		std::vector<uint32_t> config_data;
 
 		network() = default;
-
-		/*
-			Creates an initialized, untrained neural network with the amount of layers being the amount of items in an array, and each item's value being the amount of neurons in that layer and the first layer being excluded as the input size.
-		*/
+		// Creates an initialized, untrained neural network with the amount of layers being the amount of items in an array, and each item's value being the amount of neurons in that layer and the first layer being excluded as the input size.
 		inline network(std::vector<uint32_t> layer_sizes)
 		{
 			size_t length = layer_sizes.size();
@@ -417,10 +430,7 @@ namespace neutron
 
 			layers = new_layers;
 		}
-
-		/*
-			Saves or creates the provided neural network in the provided location. Will overwrite without confirmation.
-		*/
+		// Saves or creates a neural network in the provided location. Will overwrite without confirmation.
 		inline void save_network(char *location)
 		{
 			if (layers.size() < 2)
@@ -431,27 +441,19 @@ namespace neutron
 
 			neutron::binary::new_bin(location);
 
-			std::fstream file(location, std::ios::in | std::ios::out | std::ios::binary);
-
-			if (!file.is_open())
-			{
-				std::cerr << "save_network: failed to open \"" << location << "\"\n";
-				return;
-			}
-
-			neutron::binary::overwrite_config(location, file, config_data);
+			neutron::binary::overwrite_config(location, config_data);
 
 			size_t block = 0;
 			for (size_t i = 0; i < layers.size(); i++)
 			{
-				if (layers[i].biases.size() == 0)
+				if (layers[i].weights.size() == 0)
 				{
 					std::cerr << "save_network: layer " << i << "'s # of weights is 0\n";
 					return;
 				}
 				neutron::binary::write_block(location, block, layers[i].weights);
 				block++;
-				if (layers[i].weights.size() == 0)
+				if (layers[i].biases.size() == 0)
 				{
 					std::cerr << "save_network: layer " << i << "'s # of biases is 0\n";
 					return;
@@ -460,31 +462,39 @@ namespace neutron
 				block++;
 			}
 		}
-
-		/*
-			Reads the neural network at a given location and returns it in the "neutron::network" struct.
-		*/
+		// Reads the neural network at a given location and returns it in the `neutron::network` struct.
 		inline static network read_network(char *location)
 		{
-			std::fstream file(location, std::ios::in | std::ios::binary);
-			neutron::binary::file_metadata file_metadata = neutron::binary::read_metadata(file);
+			neutron::binary::header header = neutron::binary::read_metadata(location);
 			neutron::network new_network = network();
+			new_network.layers.resize(header.blocks / 2);
 
-			size_t pointer = 0;
+			new_network.config_data.resize(header.config_size);
+			new_network.config_data = header.config_data;
+
+			uint32_t pointer = 0;
+
 			// Loop through layers
-			for (size_t layer = 0; layer < (file_metadata.blocks / 2); layer++)
+			for (uint32_t layer = 0; layer < (header.blocks / 2); layer++)
 			{
-				new_network.layers[layer].biases = neutron::binary::read_block(location, pointer);
-				pointer++;
 				new_network.layers[layer].weights = neutron::binary::read_block(location, pointer);
 				pointer++;
+				new_network.layers[layer].biases = neutron::binary::read_block(location, pointer);
+				pointer++;
 			}
+
+			new_network.layers[0].input_size = header.config_data[0];
+			new_network.layers[0].output_size = new_network.layers[0].biases.size();
+
+			for (uint32_t layer = 1; layer < new_network.layers.size(); layer++) {
+				new_network.layers[layer].input_size = new_network.layers[layer - 1].biases.size();
+
+				new_network.layers[layer].output_size = new_network.layers[layer].biases.size();
+			}
+
 			return new_network;
 		}
-
-		/*
-			Passes inputs through a given neural network and returns the outputs.
-		*/
+		// Passes inputs through a neural network and returns the outputs.
 		inline output forward_pass(std::vector<float> inputs)
 		{
 			if (layers.empty())
@@ -541,10 +551,7 @@ namespace neutron
 
 			return fp_output;
 		}
-
-		/*
-			Prints out the contents of the provided neural network.
-		*/
+		// Prints out the contents of a neural network.
 		inline void output_network()
 		{
 			for (int i = 0; i < layers.size(); i++)
@@ -566,7 +573,7 @@ namespace neutron
 					std::cout << layers[i].biases[v] << "  ";
 				}
 				std::cout << std::endl
-						  << std::endl;
+					  << std::endl;
 			}
 		}
 

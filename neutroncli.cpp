@@ -61,29 +61,36 @@ void remove_whitespace(char *str)
 // Functions
 void help()
 {
-	println("General Purpose Flags");
-	println("    -bench");
+	println("\033[1mGeneral Purpose Flags\033[0m");
+	println("    --bench -b");
 	println("        Displays the time taken to complete a command/task");
-	println("    -shush");
+	println("");
+	println("    --shush -s");
 	println("        Stops any non-essential prints the command may make");
-	println("    -force");
+	println("");
+	println("    --force -f");
 	println("        Forces the command to continue even if there is an error/warning");
 	println("");
-	println("Helper Commands");
+	println("");
+	println("\033[1mHelper Commands\033[0m");
 	println("    help");
 	println("        Displays this list of commands");
+	println("");
 	println("    test");
 	println("        Runs all available tests");
 	println("");
-	println("Main Commands");
+	println("");
+	println("\033[1mMain Commands\033[0m");
 	println("    create \"file-name\" <number of neurons per layer>");
 	println("        Creates/overwrites an empty neural network file with the given name in the current directory");
-	println("        ex: neutron create \"rock-paper-scissors-master.bin\" 3 4 1");
+	println("       \033[1m ex:\033[0m neutron create \"rock-paper-scissors-master.bin\" 3 4 1");
+	println("");
 	println("    forward \"file-name\" \"<inputs>\"");
 	println("        Computes and returns the forward propagation outputs of a given neural network file using the given inputs");
-	println("        ex neutron forward \"rock-paper-scissors-master.bin\" 3.4 0.98 3");
-	println("    output \"file-name\"");
-	println("        Returns the weights and biases of a given neural network file.");
+	println("        \033[1mex:\033[0m neutron forward \"rock-paper-scissors-master.bin\" 3.4 0.98 3");
+	println("");
+	println("    read \"file-name\"");
+	println("        Returns important data about a given neural network file.");
 	println("");
 }
 
@@ -92,7 +99,7 @@ int main(int argc, char **argv)
 	if (argc < 2)
 	{
 		std::cout << "Neutron " << version << " " << release_date << std::endl;
-		std::cout << "© " << copyright_date << " Nicholas Fortune. Licensed under GNU GPL v3." << std::endl;
+		std::cout << "Copyright " << copyright_date << " Nicholas Fortune. Licensed under GNU GPL v3." << std::endl;
 		std::cout << "You are free to use, modify, and share this software under the GPL license." << std::endl;
 		std::cout << "Use \"neutron help\" for help." << std::endl
 			  << std::endl;
@@ -182,10 +189,8 @@ int main(int argc, char **argv)
 
 		neutron::network neural_network = neutron::network::read_network(arguments[0]);
 		neutron::network::output output = neural_network.forward_pass(inputs);
-
-
 	}
-	else if (cmd == "output")
+	else if (cmd == "read")
 	{
 		neutron::network neural_network = neutron::network::read_network(arguments[0]);
 		neural_network.output_network();
