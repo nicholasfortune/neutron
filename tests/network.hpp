@@ -1,8 +1,6 @@
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
-#define NEUTRON_EPSILON 1e-3f
-
 #include <fstream>
 #include <filesystem>
 #include <iostream>
@@ -16,20 +14,20 @@ namespace network
 	char test_file_name[] = "network_test_file.binary";
 
 	// Helper float comparison
-	inline bool vector_float_comp(std::vector<float> a, std::vector<float> b)
+	bool vector_float_comp(std::vector<float> a, std::vector<float> b)
 	{
 		if (a.size() != b.size())
 			return false;
 
 		for (size_t i = 0; i < a.size(); ++i)
 		{
-			if (std::abs(a[i] - b[i]) > NEUTRON_EPSILON)
+			if (std::abs(a[i] - b[i]) > 1e-3f)
 				return false;
 		}
 		return true;
 	}
 
-	inline bool create_network()
+	bool create_network()
 	{
 		uint32_t fails = 0;
 
@@ -114,9 +112,8 @@ namespace network
 
 		return (fails == 0);
 	}
-
 	neutron::network test_network;
-	inline bool save_network()
+	bool save_network()
 	{
 		uint32_t fails = 0;
 
@@ -226,7 +223,7 @@ namespace network
 		file.close();
 		return (fails == 0);
 	}
-	inline bool read_network()
+	bool read_network()
 	{
 		uint32_t fails = 0;
 
@@ -299,8 +296,70 @@ namespace network
 
 		return (fails == 0);
 	}
+	bool forward_pass()
+	{
+		uint32_t fails = 0;
+
+		/*
+		Test Neural Network:
+			Activation: ReLU
+			Inputs: 2
+			Outputs: 2
+			Layers: 2
+			Layer 0:	Weights: 1, 2,    2, 1
+					Biases: 3, 1
+			Layer 1:	Weights: 3, 2,    1, 3
+					Biases: 2, 3
+
+		Inputs:
+			2, 4
+
+		Expected Outputs:
+		** A pass is considered within one percent of the following values.
+		Output 1: 59.0
+
+		Output 2: 43.0
+		*/
+
+		// Initialize the network
+		std::vector<uint32_t> layers = {2, 2, 2};
+		neutron::network fp_test_network = neutron::network(layers);
+		std::vector<float> inputs = {2.0, 4.0};
+		std::vector<float> expected_results = {59.0, 43.0};
+
+		// Define the weights and biases
+		std::vector<float> l0w = {1.0, 2.0, 2.0, 1.0};
+		std::vector<float> l0b = {3.0, 1.0};
+
+		std::vector<float> l1w = {3.0, 2.0, 1.0, 3.0};
+		std::vector<float> l1b = {2.0, 3.0};
+
+		// Manually set the weights and biases
+		fp_test_network.layers[0].weights = l0w;
+		fp_test_network.layers[0].biases = l0b;
+
+		fp_test_network.layers[1].weights = l1w;
+		fp_test_network.layers[1].biases = l1b;
+
+		neutron::network::output test_results = fp_test_network.forward_pass(inputs);
+
+		if (std::abs(test_results.outputs[0] - expected_results[0]) > 0.01 * std::abs(expected_results[0]))
+		{
+			std::cerr << "\033[31m[ ERROR ]\033[0m network: forward_pass: output 1 (index 0) not within one percent of expected value.\n";
+			fails++;
+		}
+
+		if (std::abs(test_results.outputs[1] - expected_results[1]) > 0.01 * std::abs(expected_results[1]))
+		{
+			std::cerr << "\033[31m[ ERROR ]\033[0m network: forward_pass: output 2 (index 1) not within one percent of expected value.\n";
+			fails++;
+		}
+
+
+		return (fails == 0);
+	}
 	
-	inline bool network()
+	bool network()
 	{
 		bool success = true;
 		if (!create_network())
@@ -324,19 +383,27 @@ namespace network
 				if (!read_network())
 				{
 					std::cout << "\033[31m[ FAILED ]\033[0m network: read_network()\n";
-					std::cout << "\033[31m[ FATAL ]\033[0m network: read_network() was required for further tests, quitting network test.\n";
 					success = false;
 				}
 				else
 				{
 					std::cout << "\033[32m[ PASSED ]\033[0m network: read_network()\n";
 				}
+				if (!forward_pass())
+				{
+					std::cout << "\033[31m[ FAILED ]\033[0m network: forward_pass()\n";
+					success = false;
+				}
+				else
+				{
+					std::cout << "\033[32m[ PASSED ]\033[0m network: forward_pass()\n";
+				}
 			}
 		}
 
 		if (!success)
 		{
-			std::cout << "\033[33m[ NOTICE ]\033[0m binary: \033[1msome tests failed, check the binary test file \"" << test_file_name << "\" at the working directory.\033[0m" << std::endl;
+			std::cout << "\033[33m[ NOTICE ]\033[0m network: \033[1msome tests failed, check the network test file \"" << test_file_name << "\" at the working directory.\033[0m" << std::endl;
 		}
 		else
 		{
@@ -346,7 +413,7 @@ namespace network
 			}
 			catch (const fs::filesystem_error &e)
 			{
-				std::cerr << "\033[31m[ ERROR ]\033[0m binary: failed to delete file, error message: \"" << e.what() << "\"" << std::endl;
+				std::cerr << "\033[31m[ ERROR ]\033[0m network: failed to delete file, error message: \"" << e.what() << "\"" << std::endl;
 			}
 		}
 
