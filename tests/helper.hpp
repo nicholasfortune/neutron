@@ -8,8 +8,32 @@
 
 namespace helper
 {
-	neutron::helper::matrix test_matrix_a = neutron::helper::matrix(3, 2);
-	neutron::helper::matrix test_matrix_b = neutron::helper::matrix(3, 2);
+	neutron::helper::matrix test_matrix_a;
+	neutron::helper::matrix test_matrix_b;
+
+	bool matrix()
+	{
+		uint32_t fails = 0;
+
+		/*
+			Tests:
+			1. matrix(3, 2) -> matrix.data() returns a vector array 6 elements long
+			2. matrix(3, 2, vector) -> maxtrix.data() returns the exact vector array used as the input
+		*/
+
+		std::vector<float> vector = {1.618f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
+
+		test_matrix_a = neutron::helper::matrix(3, 2);
+		test_matrix_b = neutron::helper::matrix(3, 2, vector);
+
+		if (test_matrix_a.data().size() == 6)
+		{
+			std::cerr << "\033[31m[ ERROR ]\033[0m helper: get: matrix coordinate (0, 0) not within one-thousandth of expected value.\n";
+			fails++;
+		}
+
+		return (fails == 0);
+	}
 
 	bool get()
 	{
@@ -20,16 +44,16 @@ namespace helper
 		test_matrix_b.data = {6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.414f};
 
 		/*
-		Tests:
-		a: (0, 0)
-		b: (2, 1)
+		   Tests:
+		   a: (0, 0)
+		   b: (2, 1)
 
-		Expected reads:
-		a: (0, 0) = 1.618f
-		b: (2, 1) = 1.414f
+		   Expected reads:
+		   a: (0, 0) = 1.618f
+		   b: (2, 1) = 1.414f
 
-		A pass is within 1e-3f of these expected results.
-		*/
+		   A pass is within 1e-3f of these expected results.
+		   */
 
 		if (std::abs(1.618f - test_matrix_a.get(0, 0)) > 1e-3f)
 		{
@@ -48,16 +72,16 @@ namespace helper
 		uint32_t fails = 0;
 
 		/*
-		Set:
-		a: (0, 0) = 1.0f
-		b: (2, 1) = 1.0f
+		   Set:
+		   a: (0, 0) = 1.0f
+		   b: (2, 1) = 1.0f
 
-		Expected reads:
-		a: (0, 0) = 1.0f
-		b: (2, 1) = 1.0f
+		   Expected reads:
+		   a: (0, 0) = 1.0f
+		   b: (2, 1) = 1.0f
 
-		A pass is within 1e-3f of these expected results.
-		*/
+		   A pass is within 1e-3f of these expected results.
+		   */
 
 		test_matrix_a.set(0, 0, 1.0f);
 		test_matrix_b.set(2, 1, 1.0f);
@@ -80,14 +104,14 @@ namespace helper
 		uint32_t fails = 0;
 
 		/*
-		Transposing matrix A.
+		   Transposing matrix A.
 
-		Expected results:
-		[1, 3, 5,
-		 2, 4, 6]
+		   Expected results:
+		   [1, 3, 5,
+		   2, 4, 6]
 
-		A pass is within 1e-3f of these expected results.
-		*/
+		   A pass is within 1e-3f of these expected results.
+		   */
 
 		neutron::helper::matrix expected_results = neutron::helper::matrix(2, 3);
 		expected_results.data = {1.0f, 3.0f, 5.0f, 2.0f, 4.0f, 6.0f};
@@ -123,14 +147,14 @@ namespace helper
 		uint32_t fails = 0;
 
 		/*
-		Transpose matrix A, then dot product the result and matrix B.
+		   Transpose matrix A, then dot product the result and matrix B.
 
-		Expected results:
-		[28, 19,
-		 40, 28]
+		   Expected results:
+		   [28, 19,
+		   40, 28]
 
-		A pass is within 1e-3f of these expected results.
-		*/
+		   A pass is within 1e-3f of these expected results.
+		   */
 
 		neutron::helper::matrix expected_results = neutron::helper::matrix(2, 2);
 		expected_results.data = {28.0f, 19.0f, 40.0f, 28.0f};
@@ -166,15 +190,15 @@ namespace helper
 		uint32_t fails = 0;
 
 		/*
-		Do element-wise multiplication of matrix A and B.
+		   Do element-wise multiplication of matrix A and B.
 
-		Expected results:
-		[6, 10,
-		 12, 12,
-		 10, 6]
+		   Expected results:
+		   [6, 10,
+		   12, 12,
+		   10, 6]
 
-		A pass is within 1e-3f of these expected results.
-		*/
+		   A pass is within 1e-3f of these expected results.
+		   */
 
 		neutron::helper::matrix expected_results = neutron::helper::matrix(3, 2);
 		expected_results.data = {6.0f, 10.0f, 12.0f, 12.0f, 10.0f, 6.0f};
@@ -209,50 +233,59 @@ namespace helper
 	bool helper()
 	{
 		bool success = true;
-		if (!get())
+		if (!matrix())
 		{
-			std::cout << "\033[31m[ FAILED ]\033[0m helper: get()\n";
-			std::cout << "\033[31m[ FATAL ]\033[0m helper: get() was required for further tests, quitting helper test.\n";
+			std::cout << "\033[31m[ FAILED ]\033[0m helper: matrix()\n";
+			std::cout << "\033[31m[ FATAL ]\033[0m helper: matrix() was required for further tests, quitting helper test.\n";
 			success = false;
 		}
 		else
 		{
-			std::cout << "\033[32m[ PASSED ]\033[0m helper: get()\n";
-			if (!set())
+			if (!get())
 			{
-				std::cout << "\033[31m[ FAILED ]\033[0m helper: set()\n";
-				std::cout << "\033[31m[ FATAL ]\033[0m helper: set() was required for further tests, quitting helper test.\n";
+				std::cout << "\033[31m[ FAILED ]\033[0m helper: get()\n";
+				std::cout << "\033[31m[ FATAL ]\033[0m helper: get() was required for further tests, quitting helper test.\n";
 				success = false;
 			}
 			else
 			{
-				std::cout << "\033[32m[ PASSED ]\033[0m helper: set()\n";
-				if (!transpose())
+				std::cout << "\033[32m[ PASSED ]\033[0m helper: get()\n";
+				if (!set())
 				{
-					std::cout << "\033[31m[ FAILED ]\033[0m helper: transpose()\n";
+					std::cout << "\033[31m[ FAILED ]\033[0m helper: set()\n";
+					std::cout << "\033[31m[ FATAL ]\033[0m helper: set() was required for further tests, quitting helper test.\n";
 					success = false;
 				}
 				else
 				{
-					std::cout << "\033[32m[ PASSED ]\033[0m helper: transpose()\n";
-				}
-				if (!dot())
-				{
-					std::cout << "\033[31m[ FAILED ]\033[0m helper: dot()\n";
-					success = false;
-				}
-				else
-				{
-					std::cout << "\033[32m[ PASSED ]\033[0m helper: dot()\n";
-				}
-				if (!element())
-				{
-					std::cout << "\033[31m[ FAILED ]\033[0m helper: element()\n";
-					success = false;
-				}
-				else
-				{
-					std::cout << "\033[32m[ PASSED ]\033[0m helper: element()\n";
+					std::cout << "\033[32m[ PASSED ]\033[0m helper: set()\n";
+					if (!transpose())
+					{
+						std::cout << "\033[31m[ FAILED ]\033[0m helper: transpose()\n";
+						success = false;
+					}
+					else
+					{
+						std::cout << "\033[32m[ PASSED ]\033[0m helper: transpose()\n";
+					}
+					if (!dot())
+					{
+						std::cout << "\033[31m[ FAILED ]\033[0m helper: dot()\n";
+						success = false;
+					}
+					else
+					{
+						std::cout << "\033[32m[ PASSED ]\033[0m helper: dot()\n";
+					}
+					if (!element())
+					{
+						std::cout << "\033[31m[ FAILED ]\033[0m helper: element()\n";
+						success = false;
+					}
+					else
+					{
+						std::cout << "\033[32m[ PASSED ]\033[0m helper: element()\n";
+					}
 				}
 			}
 		}
