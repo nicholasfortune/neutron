@@ -1,37 +1,36 @@
 # Neutron Building Guide
-You can build this project however you want, but for beginners, I recommend g++ from GCC.
+You can build this project however you want, but I recommend g++ from GCC.
 
 
-# Building the CLI For Windows
+### Building the CLI For Windows
 To get a CLI, open the root directory in terminal, and then choose from the following commands:
 
-
-### For a stable CLI build:
+**For a stable CLI build:**
 
 `g++ neutroncli.cpp -o bin/neutroncli.exe`
 
 
-### For an optimized CLI build:
+**For an optimized CLI build:**
 
 `g++ neutroncli.cpp -o bin/neutroncli.exe -O3 -march=native -mtune=native -flto -DNDEBUG`
 
 
-# Building the CLI For Linux
+### Building the CLI For Linux
 To get a CLI, open the root directory in terminal, and then choose from the following commands:
 
 
-### For a stable CLI build:
+**For a stable CLI build:**
 
 `g++ neutroncli.cpp -o bin/neutroncli`
 
 
-### For an optimized CLI build:
+**For an optimized CLI build:**
 
 `g++ neutroncli.cpp -o bin/neutroncli -O3 -march=native -mtune=native -flto -DNDEBUG`
 
 
 # Using Neutron as a library
-The entire neutron project can be ran with a single header file, just put it in your project folder and you're done.
+The **entire neutron project can be ran with a single header file**, just put it in your project folder and you're done.
 ```
 #include "neutron.hpp"
 
@@ -43,4 +42,4 @@ int main() {
     return 0;
 }
 ```
-Simple as that!
+**Simple as that!**
