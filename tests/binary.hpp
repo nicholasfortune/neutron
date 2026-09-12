@@ -13,7 +13,7 @@ namespace binary
 	namespace fs = std::filesystem;
 	char test_file_name[] = "binary_test_file.binary";
 
-	inline bool insert_bytes()
+	bool insert_bytes()
 	{
 		uint32_t fails = 0;
 
@@ -99,7 +99,7 @@ namespace binary
 		file.close();
 		return (fails == 0);
 	}
-	inline bool new_bin()
+	bool new_bin()
 	{
 		uint32_t fails = 0;
 
@@ -172,7 +172,7 @@ namespace binary
 		file.close();
 		return (fails == 0);
 	}
-	inline bool write_block()
+	bool write_block()
 	{
 		uint32_t fails = 0;
 
@@ -299,7 +299,7 @@ namespace binary
 		file.close();
 		return (fails == 0);
 	}
-	inline bool read_block()
+	bool read_block()
 	{
 		uint32_t fails = 0;
 
@@ -327,7 +327,7 @@ namespace binary
 		}
 		return (fails == 0);
 	}
-	inline bool read_metadata()
+	bool read_metadata()
 	{
 		uint32_t fails = 0;
 
@@ -444,7 +444,7 @@ namespace binary
 		file.close();
 		return (fails == 0);
 	}
-	inline bool overwrite_config()
+	bool overwrite_config()
 	{
 		uint32_t fails = 0;
 
@@ -484,7 +484,7 @@ namespace binary
 		return (fails == 0);
 	}
 
-	inline bool binary()
+	bool binary()
 	{
 		bool success = true;
 		bool test_result = false;

@@ -2,20 +2,27 @@
 #define TESTMAN_HPP
 
 #include "iostream"
-#include "binary-tests.hpp"
-#include "network-tests.hpp"
+#include "helper.hpp"
+#include "binary.hpp"
+#include "network.hpp"
 
 namespace testman
 {
 	const char *bold = "\033[1m";
 	const char *reset = "\033[0m";
 
-	const int total_tests = 2;
+	const int total_tests = 3;
 	int tests_passed = 0;
 	int tests_done = 0;
 
 	inline void all_tests()
 	{
+		tests_done++;
+		std::cout << bold << "testman: (" << tests_done << "/" << total_tests << ") running helper tests" << reset << std::endl;
+		if (helper::helper())
+		{
+			tests_passed++;
+		}
 		tests_done++;
 		std::cout << bold << "testman: (" << tests_done << "/" << total_tests << ") running binary tests" << reset << std::endl;
 		if (binary::binary())

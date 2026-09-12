@@ -65,9 +65,6 @@ void help()
 	println("    --bench -b");
 	println("        Displays the time taken to complete a command/task");
 	println("");
-	println("    --shush -s");
-	println("        Stops any non-essential prints the command may make");
-	println("");
 	println("    --force -f");
 	println("        Forces the command to continue even if there is an error/warning");
 	println("");
@@ -83,11 +80,11 @@ void help()
 	println("\033[1mMain Commands\033[0m");
 	println("    create \"file-name\" <number of neurons per layer>");
 	println("        Creates/overwrites an empty neural network file with the given name in the current directory");
-	println("       \033[1m ex:\033[0m neutron create \"rock-paper-scissors-master.bin\" 3 4 1");
+	println("       \033[1m ex:\033[0m neutroncli create \"rock-paper-scissors-master.bin\" 3 4 1");
 	println("");
 	println("    forward \"file-name\" \"<inputs>\"");
 	println("        Computes and returns the forward propagation outputs of a given neural network file using the given inputs");
-	println("        \033[1mex:\033[0m neutron forward \"rock-paper-scissors-master.bin\" 3.4 0.98 3");
+	println("        \033[1mex:\033[0m neutroncli forward \"rock-paper-scissors-master.bin\" 3.4 0.98 3");
 	println("");
 	println("    read \"file-name\"");
 	println("        Returns important data about a given neural network file.");
@@ -98,10 +95,10 @@ int main(int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		std::cout << "Neutron " << version << " " << release_date << std::endl;
+		std::cout << "\033[1mNeutron (CLI Edition) " << version << "  -  " << release_date << "\033[0m" << std::endl;
 		std::cout << "Copyright " << copyright_date << " Nicholas Fortune. Licensed under GNU GPL v3." << std::endl;
 		std::cout << "You are free to use, modify, and share this software under the GPL license." << std::endl;
-		std::cout << "Use \"neutron help\" for help." << std::endl
+		std::cout << "Use \"neutroncli help\" for help." << std::endl
 			  << std::endl;
 		return 0;
 	}
@@ -181,14 +178,14 @@ int main(int argc, char **argv)
 		inputs.resize(arguments.size() - 1);
 
 		for (size_t i = 0; i < inputs.size(); i++)
-		{
 			inputs[i] = std::stof(arguments[i + 1]);
-			std::cout << inputs[i] << "   ";
-		}
-		std::cout << "\n";
 
 		neutron::network neural_network = neutron::network::read_network(arguments[0]);
 		neutron::network::output output = neural_network.forward_pass(inputs);
+		std::cout << "outputs: " << output.outputs[0];
+		for (size_t i = 1; i < output.outputs.size(); i++)
+			std::cout << ", " << output.outputs[i];
+		std::cout << "\n";
 	}
 	else if (cmd == "read")
 	{
