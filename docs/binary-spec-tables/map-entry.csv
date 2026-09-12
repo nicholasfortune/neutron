@@ -1,0 +1,8 @@
+**Index**,**Offset**,**Field**,**Type**,**Description**
+0,0 bytes or `0x00`,`id`,`uint32_t`,A unique identifier for each layer
+1,4 bytes or `0x04`,`type`,`uint8_t`,"A data type identifier. Ex: `0 = FP32`, `2 = INT8` (these examples may not be correct).  See `types` below for more details."
+2,5 bytes or `0x05`,`blocks`,`uint8_t`,"The number of blocks/unique segments of data in this layer. Each block could be weights, biases, or something else."
+3,6 bytes or `0x06`,`alignment`,`uint16_t`,"The alignment of the start of this layer, usually 64. The padding to reach this alignment will be filled with zeros."
+4,12 bytes or `0x0C`,`map_count`,`uint32_t`,The count of entries in the map
+5,16 bytes or `0x10`,`map_offset`,`uint64_t`,The offset of the first entry in the map
+6,24 bytes or `0x18`,`file_size`,`uint64_t`,The total size of the file used for validation
